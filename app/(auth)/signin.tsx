@@ -19,8 +19,7 @@ function SignInScreen() {
             // Stockage SÉCURISÉ du token et de l'ID utilisateur
             await SecureStore.setItemAsync('userToken', authData.token);
             await SecureStore.setItemAsync('userId', authData.record.id);
-
-            router.replace('/(tabs)'); // Redirection vers l'écran principal (onglets)
+            router.replace('/(tabs)');
         } catch (error: any) {
             console.error("Erreur d'authentification:", error);
             Alert.alert("Erreur d'authentification", error.message); // Affiche l'erreur à l'utilisateur

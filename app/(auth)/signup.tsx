@@ -17,23 +17,62 @@ function SignUpScreen() {
         if (password !== passwordConfirm) {
             Alert.alert("Erreur", "Les mots de passe ne correspondent pas.");
             setLoading(false);
-            return; // Arrête l'exécution de la fonction
+            return;
+        }
+
+        // Validation supplémentaire
+        if (!email.includes('@')) {
+            Alert.alert("Erreur", "Email invalide");
+            setLoading(false);
+            return;
+        }
+
+        if (password.length < 8) {
+            Alert.alert("Erreur", "Le mot de passe doit faire au moins 8 caractères");
+            setLoading(false);
+            return;
         }
 
         try {
             const data = {
                 email,
-                emailVisibility: false, // Cache l'email par défaut
                 password,
                 passwordConfirm,
-                name: 'Nom Exemple', // Remplace par un champ de nom si tu en as un
+                username: email.split('@')[0],
             };
-            const record = await pb.collection('users').create(data);
-            Alert.alert("Compte créé", "Vous pouvez maintenant vous connecter.");
-            router.replace('/(auth)/signin'); // Redirige vers l'écran de connexion
+
+            // Log plus détaillé
+            console.log("URL de l'API:", pb.baseUrl);
+            console.log("Données envoyées:", JSON.stringify(data, null, 2));
+
+            // Création du compte
+            await pb.collection('users').create(data);
+
+            // Connexion après création
+            await pb.collection('users').authWithPassword(email, password);
+
+            Alert.alert("Compte créé", "Vous êtes maintenant connecté !");
+            router.replace('/');
         } catch (error: any) {
-            console.error("Erreur lors de la création du compte:", error);
-            Alert.alert("Erreur de création", error.message);
+            console.error("Erreur complète:", error);
+            console.error("Erreur détaillée:", {
+                message: error.message,
+                data: error.data,
+                status: error.status,
+                response: error.response,
+                originalError: error
+            });
+
+            let errorMessage = "Erreur lors de la création du compte:\n";
+            if (error.data?.data) {
+                Object.entries(error.data.data).forEach(([key, value]) => {
+                    errorMessage += `\n${key}: ${value}`;
+                });
+            } else {
+                errorMessage += error.message;
+            }
+
+            Alert.alert("Erreur de création", errorMessage);
         } finally {
             setLoading(false);
         }
